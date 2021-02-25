@@ -2,6 +2,8 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog,font,colorchooser
 from PIL import ImageGrab, ImageTk, Image
+from logo import img
+import base64
 
 class MainWindow(object):
     def __init__(self):
@@ -30,6 +32,7 @@ class MainWindow(object):
 
     def __createMainwinow(self):
         self.root = tk.Tk()
+        self.root.iconphoto(True, ImageTk.PhotoImage(data=base64.b64decode(img)))
         self.root.title("一键生成微信公众号封面")
         self.root.geometry('960x520')
         self.root.resizable(0,0)
