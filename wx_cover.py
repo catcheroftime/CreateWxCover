@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog,font,colorchooser
 from PIL import ImageGrab, ImageTk, Image
-from logo import img
+from resource import logo_ico
 import base64
 
 class MainWindow(object):
@@ -20,6 +20,7 @@ class MainWindow(object):
         self.curImageCenterPos = (self.cv_width/2,self.cv_height/2)
 
         self.curTextPos = (self.cv_width/2,self.cv_height/2)
+
         # canvas 上的索引
         self.canvas_imgIndex = None
         self.canvas_textIndex = None
@@ -32,7 +33,7 @@ class MainWindow(object):
 
     def __createMainwinow(self):
         self.root = tk.Tk()
-        self.root.iconphoto(True, ImageTk.PhotoImage(data=base64.b64decode(img)))
+        self.root.iconphoto(True, ImageTk.PhotoImage(data=base64.b64decode(logo_ico)))
         self.root.title("一键生成微信公众号封面")
         self.root.geometry('960x520')
         self.root.resizable(0,0)
@@ -56,8 +57,7 @@ class MainWindow(object):
         # 图片信息
         tk.Label(self.element_frame, text="图片地址: ").grid(row=0,column=0)
         self.picpath = tk.StringVar()
-        self.picpathEntry = ttk.Entry(self.element_frame, textvariable=self.picpath, width = 30, state="readonly")
-        self.picpathEntry.grid(row=0,column=1)
+        ttk.Entry(self.element_frame, textvariable=self.picpath, width = 30, state="readonly").grid(row=0,column=1)
         ttk.Button(self.element_frame, text ="打开图片", width = 8, takefocus=False, command = self.__openLocalImage).grid(row=0,column=2,padx=5,pady=5)
         ttk.Button(self.element_frame, text ="放大图片", width = 8, takefocus=False, command = self.__zoomUpImage).grid(row=0,column=3)
         ttk.Button(self.element_frame, text ="缩小图片", width = 8, takefocus=False, command = self.__zoomDownImage).grid(row=0,column=4,padx=5)
@@ -66,25 +66,17 @@ class MainWindow(object):
         ttk.Label(self.element_frame, text="文字内容: ").grid(row=1,column=0)
         self.var_text = tk.StringVar()
         self.var_text.trace_add("write", self.__FontChange)
-        self.textEntry = ttk.Entry(self.element_frame, textvariable=self.var_text, width = 30)
-        self.textEntry.grid(row=1,column=1)
+        ttk.Entry(self.element_frame, textvariable=self.var_text, width = 30).grid(row=1,column=1)
 
         # 字体样式
-        self.var_fontfamily = tk.StringVar()
-        self.var_fontfamily.trace_add("write", self.__FontChange)
-        self.fontfamily_combobox = self.__createFontFamilyCombobox(self.element_frame, self.var_fontfamily)
-        self.fontfamily_combobox.grid(row=1,column=2, columnspan=3, sticky=tk.W+tk.E,padx=5)
+        self.__createFontFamilyCombobox()
 
-
+        # 展示详细编辑字体的 Frame
         self.font_frame = tk.Frame(self.element_frame)
         self.font_frame.grid(row=2,column=2,columnspan=3,sticky=tk.W,pady=5,padx=5)
 
         # 字体相关的设置，字体大小，加粗，斜体，下划线，删除线,颜色
-        self.var_fontsize = tk.StringVar()
-        self.var_fontsize.trace_add("write", self.__FontChange)
-        self.fontsize_combobox = self.__createFontSizeCombobox(self.font_frame, self.var_fontsize)
-        self.fontsize_combobox.pack(side='left')
-
+        self.__createFontSizeCombobox(self.font_frame).pack(side='left')
         self.__createFontBoldCheckButton(self.font_frame).pack(side='left', padx=6)
         self.__createFontSlantCheckButton(self.font_frame).pack(side='left')
         self.__createFontUnderlineCheckButton(self.font_frame).pack(side='left',padx=6)
@@ -93,12 +85,12 @@ class MainWindow(object):
         self.color_button = tk.Button(self.font_frame, text ="", width = 3, background="#3C70C6",command = self.__ColorChange)
         self.color_button.pack(side='left',padx=6)
 
-
     # 控制移动部分
     def __createMoveControlFrame(self):
         self.moveframe = tk.Frame(self.infoframe)
         self.moveframe.pack(padx=50, pady=5)
 
+        # 上下左右4个移动按钮
         ttk.Button(self.moveframe,text ="上", width = 2, takefocus=False, command = self.__moveUp).grid(row=0,column=1)
         ttk.Button(self.moveframe,text ="下", width = 2, takefocus=False, command = self.__moveDown).grid(row=2,column=1)
         ttk.Button(self.moveframe,text ="左", width = 2, takefocus=False, command = self.__moveLeft).grid(row=1,column=0,padx=3)
@@ -107,6 +99,7 @@ class MainWindow(object):
         ttk.Label(self.moveframe, text="移动尺寸").grid(row=0,column=3, pady=5, padx=15)
         ttk.Label(self.moveframe, text="移动对象").grid(row=1,column=3)
 
+        # 移动距离的下拉菜单
         self.var_movesize = tk.StringVar()
         self.movesize_combobox = ttk.Combobox(self.moveframe, textvariable=self.var_movesize)
         self.movesize_combobox['state'] = "readonly"        
@@ -114,6 +107,7 @@ class MainWindow(object):
         self.movesize_combobox.current(1)
         self.movesize_combobox.grid(row=0,column=4,sticky = tk.W+tk.E)
 
+        # 移动对象的下拉菜单
         self.var_moveobject = tk.StringVar()
         self.moveobject_combobox = ttk.Combobox(self.moveframe, textvariable=self.var_moveobject)
         self.moveobject_combobox['state'] = "readonly"  
@@ -124,6 +118,7 @@ class MainWindow(object):
 
         self.buttonframe = tk.Frame(self.moveframe)
         self.buttonframe.grid(row=2,column=4, sticky = tk.E)
+        # 重置位置 和 保存图片 按钮
         ttk.Button(self.buttonframe,text ="重置位置", width = 8, takefocus=False, command = self.__resetPos).pack(side="left")
         ttk.Button(self.buttonframe,text ="保存图片", width = 8, takefocus=False, command = self.__saveImage).pack()
 
@@ -135,14 +130,21 @@ class MainWindow(object):
 
     def __createRuler(self):
         self.__clearRuler()
-        
+
         # 绘制 1:1 的标尺， 记录标尺，在最后保存图片的时候清除
         self.rulers = []
         ruler_start = (self.cv_width-self.cv_height) / 2
+        # 中央 1:1 的标尺
         self.rulers.append(self.canvas.create_line(ruler_start, 0, ruler_start, self.cv_height, dash=(4, 4)))
-        self.rulers.append(self.canvas.create_line(ruler_start+self.cv_height, 0, ruler_start+self.cv_height, self.cv_height,dash=(4, 4)))
-        self.rulers.append(self.canvas.create_line(0, self.cv_height/2, self.cv_width, self.cv_height/2,dash=(4, 4)))
+        self.rulers.append(self.canvas.create_line(self.cv_width-ruler_start, 0, self.cv_width-ruler_start, self.cv_height, dash=(4, 4)))
 
+        # 防止过于靠边的标尺       
+        self.rulers.append(self.canvas.create_line(self.cv_width/8, 0, self.cv_width/8, self.cv_height, dash=(4, 4)))
+        self.rulers.append(self.canvas.create_line(self.cv_width*7/8, 0, self.cv_width*7/8, self.cv_height, dash=(4, 4)))
+
+        # 中央水平的标尺
+        self.rulers.append(self.canvas.create_line(0, self.cv_height/2, self.cv_width, self.cv_height/2, dash=(4, 4)))
+        
     def __ColorChange(self):
         result = colorchooser.askcolor()
         if result[1]:
@@ -154,6 +156,7 @@ class MainWindow(object):
         # 删除旧的字体
         if self.canvas_textIndex :
             self.canvas.delete(self.canvas_textIndex)
+
         if self.var_text.get():
             f = font.Font(  family=self.var_fontfamily.get(), 
                             size=self.var_fontsize.get(),
@@ -165,36 +168,40 @@ class MainWindow(object):
             self.__createRuler()
 
     # 字体样式
-    def __createFontFamilyCombobox(self, parent, var_text):
+    def __createFontFamilyCombobox(self):
+        self.var_fontfamily = tk.StringVar()
+        self.var_fontfamily.trace_add("write", self.__FontChange)
         # 创建字体的下拉菜单
-        fontfamily_combobox = ttk.Combobox(parent, textvariable=var_text)
-        fontfamily_combobox['state'] = "readonly"
+        self.fontfamily_combobox = ttk.Combobox(self.element_frame, textvariable=self.var_fontfamily)
+        self.fontfamily_combobox['state'] = "readonly"
         # 获取当前系统中所有的字体，并筛选出首字母是中文的字体           
         list_families = []
         for i in font.families():
             if (i[0] != "@") and ('\u4e00' <= i[0] <= '\u9fff'):
                 list_families.append(i)
         self.families = tuple(list_families)            
-        fontfamily_combobox['value'] = self.families
+        self.fontfamily_combobox['value'] = self.families
         
         # 默认选用 微软雅黑字体
         try:
             currentindex = self.families.index("微软雅黑")
         except:
             currentindex = 0
-        fontfamily_combobox.current(currentindex)
-        return fontfamily_combobox
+        self.fontfamily_combobox.current(currentindex)
+        self.fontfamily_combobox.grid(row=1,column=2, columnspan=3, sticky=tk.W+tk.E,padx=5)
 
     # 字体大小
-    def __createFontSizeCombobox(self, parent, var_text):
+    def __createFontSizeCombobox(self, parent):
+        self.var_fontsize = tk.StringVar()
+        self.var_fontsize.trace_add("write", self.__FontChange)
         # 创建字体的下拉菜单
-        fontsize_combobox = ttk.Combobox(parent, width=5, textvariable=var_text)
-        fontsize_combobox['state'] = "readonly"
+        self.fontsize_combobox = ttk.Combobox(parent, width=5, textvariable=self.var_fontsize)
+        self.fontsize_combobox['state'] = "readonly"
         self.tuple_size = (8,9,10,11,12,14,16,18,20,22,24,26,28,36,48,72)        
-        fontsize_combobox['value'] = self.tuple_size
+        self.fontsize_combobox['value'] = self.tuple_size
         currentindex = self.tuple_size.index(48)
-        fontsize_combobox.current(currentindex)
-        return fontsize_combobox
+        self.fontsize_combobox.current(currentindex)
+        return self.fontsize_combobox
 
     def __changeFontweightStyle(self):
         if not self.fontweight_status:
@@ -263,7 +270,7 @@ class MainWindow(object):
         self.fontoverstrike_status = bool(1-self.fontoverstrike_status)
         self.__FontChange()
 
-    # 下划线
+    # 删除线
     def __createFontOverstrikeCheckButton(self, parent):
         self.fontoverstrike_status = False
         ttkstyle = ttk.Style()
@@ -324,36 +331,21 @@ class MainWindow(object):
 
     def __moveUp(self):
         direction = "up"
-        if self.var_moveobject.get() == self.moveobjects[0]:
-            self.__MoveImage(direction)
-        elif self.var_moveobject.get() == self.moveobjects[1]:
-            self.__MoveText(direction)
-        else :
-            self.__MoveImage(direction)
-            self.__MoveText(direction)
+        self.__move(direction)
 
     def __moveDown(self):
         direction = "down"
-        if self.var_moveobject.get() == self.moveobjects[0]:
-            self.__MoveImage(direction)
-        elif self.var_moveobject.get() == self.moveobjects[1]:
-            self.__MoveText(direction)
-        else :
-            self.__MoveImage(direction)
-            self.__MoveText(direction)
+        self.__move(direction)
 
     def __moveLeft(self):
         direction = "left"
-        if self.var_moveobject.get() == self.moveobjects[0]:
-            self.__MoveImage(direction)
-        elif self.var_moveobject.get() == self.moveobjects[1]:
-            self.__MoveText(direction)
-        else :
-            self.__MoveImage(direction)
-            self.__MoveText(direction)
+        self.__move(direction)
     
     def __moveRight(self):
         direction = "right"
+        self.__move(direction)
+
+    def __move(self, direction:str):
         if self.var_moveobject.get() == self.moveobjects[0]:
             self.__MoveImage(direction)
         elif self.var_moveobject.get() == self.moveobjects[1]:
@@ -416,11 +408,11 @@ class MainWindow(object):
         self.__clearRuler()
         self.canvas.update()
         # 获取初始位置
-        x=self.root.winfo_rootx()+self.canvas.winfo_x()
-        y=self.root.winfo_rooty()+self.canvas.winfo_y()
+        x = self.root.winfo_rootx()+self.canvas.winfo_x()
+        y = self.root.winfo_rooty()+self.canvas.winfo_y()
         # 获取窗口长宽
-        width=x + self.canvas.winfo_width()
-        height=y + self.canvas.winfo_height()
+        width = x + self.canvas.winfo_width()
+        height = y + self.canvas.winfo_height()
         size = (x,y,width,height)
         pic = ImageGrab.grab(size)
         pic.save("./cover.png")
