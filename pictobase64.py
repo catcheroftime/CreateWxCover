@@ -2,6 +2,10 @@ import base64
 import glob
 import os
 
+# 使用 pyinstaller 时将资源文件直接导入到 exe 时执行的脚本
+# 执行此文件，生成 `resource.py` 文件
+# `wx_cover.py` 通过  from resource import logo_ico 导入需要的资源文件
+
 # 需要导入到 EXE 的图片地址
 import_pictures = glob.glob(r'./resource/*')
 
